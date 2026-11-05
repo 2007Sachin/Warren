@@ -128,3 +128,43 @@ TEST trades (2%):
 | 2026-05-06 | TCS-EQ | EShark | LONG | 2445.30 | 2420.60 | -211.49 | target_382+time_stop |
 | 2026-08-14 | TCS-EQ | Shark | SHORT | 2344.90 | 2355.50 | -182.02 | target_382+time_stop |
 
+
+
+## Iteration 3 — LIQUIDITY-SWEEP-FADE
+
+Pre-registered 15-minute liquidity-sweep fade. Universe: 55 equities + Nifty 50.
+Skip `backtest_ok=false`. Entry at next open. Risk 0.75% of equity (compounding) or of
+the initial Rs 1,00,000 (flat). MIS costs from `backtest/costs.py`.
+
+### Metrics
+
+| strategy | window | CAGR | Sharpe | max DD | win rate | profit factor | trades | cost % of gross | end equity |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| sweep-compound | VALIDATE | n/a | -2.72 | -100.02% | 28.77% | 0.34 | 664 | 49.2% | -24 |
+| sweep-flat | VALIDATE | n/a | 0.98 | -3891.95% | 38.97% | 0.45 | 10301 | 34.8% | -3808739 |
+| nifty | sweep-VALIDATE | 4.10% | 0.46 | -5.72% | 100.00% | inf | 1 | 14.2% | 102142 |
+| sweep-compound | TEST | n/a | -2.07 | -100.11% | 33.09% | 0.35 | 541 | 38.5% | -111 |
+| sweep-flat | TEST | n/a | 1.12 | -6295.98% | 39.68% | 0.41 | 17010 | 36.1% | -6195982 |
+| nifty | sweep-TEST | -2.24% | -0.07 | -10.61% | 0.00% | 0.00 | 1 | 26.4% | 98327 |
+
+### TEST breakdown by level type
+
+| level_type | trades | wins | net P&L | profit factor | cost % of gross |
+|---|---:|---:|---:|---:|---:|
+| PDH | 164 | 51 | -23138 | 0.41 | 39.8% |
+| PDL | 199 | 66 | -44782 | 0.33 | 36.3% |
+| swing | 178 | 62 | -32192 | 0.34 | 40.4% |
+
+### TEST breakdown by direction
+
+| side | trades | wins | net P&L | profit factor | cost % of gross |
+|---|---:|---:|---:|---:|---:|
+| LONG | 303 | 103 | -72080 | 0.30 | 37.4% |
+| SHORT | 238 | 76 | -28030 | 0.46 | 40.3% |
+
+### Verdict: FAILED
+
+CAGR n/a vs Nifty -2.24% (does not beat); Sharpe -2.07 <= 0.8; max DD -100.11% >= 20%
+
+Structural diagnosis: sizing 0.75% of equity against a 0.1% stop implies about 7.5× notional per name. Combined with Rs 20 brokerage, 0.05% slippage, and a 0.1% stop, each fade is cost-dominated (TEST cost is 38.5% of gross; win rate ~33%, PF ~0.35). The compound book is wiped out (end equity slightly negative). PDH, PDL, and swing levels all lose; longs lose more than shorts. The 8-bar cap and 15:00 hard exit cut the 1.5R tail. This is a size-and-cost problem on a tight stop, not a missing level type. Nifty is a cash-market MIS approximation. No parameters were changed after TEST.
+

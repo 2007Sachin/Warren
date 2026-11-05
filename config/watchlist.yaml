@@ -1,5 +1,4 @@
-# Nifty 50 index + 5 seed equities (with 15m/5m) + Nifty Next 50 (daily only).
-# Tokens from Angel One instrument master, NSE -EQ rows.
+# Nifty 50 + 5 seeds (15m/5m) + Next 50 (15m for sweep-fade; daily already stored).
 symbols:
 - symbol: Nifty 50
   token: '99926000'
@@ -40,150 +39,250 @@ symbols:
 - symbol: ABB-EQ
   token: '13'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: ADANIENSOL-EQ
   token: '10217'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: ADANIGREEN-EQ
   token: '3563'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: ADANIPOWER-EQ
   token: '17388'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: AMBUJACEM-EQ
   token: '1270'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: DMART-EQ
   token: '19913'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: BAJAJHLDNG-EQ
   token: '305'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: BANKBARODA-EQ
   token: '4668'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: BPCL-EQ
   token: '526'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: BOSCHLTD-EQ
   token: '2181'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: BRITANNIA-EQ
   token: '547'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: CGPOWER-EQ
   token: '760'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: CANBK-EQ
   token: '10794'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: CHOLAFIN-EQ
   token: '685'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: CUMMINSIND-EQ
   token: '1901'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: DLF-EQ
   token: '14732'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: DIVISLAB-EQ
   token: '10940'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: GAIL-EQ
   token: '4717'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: GODREJCP-EQ
   token: '10099'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: HDFCAMC-EQ
   token: '4244'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: HAL-EQ
   token: '2303'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: HINDZINC-EQ
   token: '1424'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: POWERINDIA-EQ
   token: '18457'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: HYUNDAI-EQ
   token: '25844'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: IOC-EQ
   token: '1624'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: IRFC-EQ
   token: '2029'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: JINDALSTEL-EQ
   token: '6733'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: LTM-EQ
   token: '17818'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: MAZDOCK-EQ
   token: '509'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: MUTHOOTFIN-EQ
   token: '23650'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: PIDILITIND-EQ
   token: '2664'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: POLYCAB-EQ
   token: '9590'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: PFC-EQ
   token: '14299'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: PNB-EQ
   token: '10666'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: MOTHERSON-EQ
   token: '4204'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: ENRIN-EQ
   token: '756871'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: SIEMENS-EQ
   token: '3150'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: SOLARINDS-EQ
   token: '13332'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: TVSMOTOR-EQ
   token: '8479'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: TATACAP-EQ
   token: '759265'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: TMCV-EQ
   token: '759782'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: TATAPOWER-EQ
   token: '3426'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: TORNTPHARM-EQ
   token: '3518'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: UNIONBANK-EQ
   token: '10753'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: VBL-EQ
   token: '18921'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: VAML-EQ
   token: '750174'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: VEDL-EQ
   token: '3063'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: IDEA-EQ
   token: '14366'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: WIPRO-EQ
   token: '3787'
   exchange: NSE
+  intraday:
+  - 15m
 - symbol: ZYDUSLIFE-EQ
   token: '7929'
   exchange: NSE
+  intraday:
+  - 15m
