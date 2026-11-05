@@ -6,6 +6,9 @@ symbols:
   intraday:
   - 15m
   - 5m
+- symbol: NIFTYBEES-EQ
+  token: '10576'
+  exchange: NSE
 - symbol: RELIANCE-EQ
   token: '2885'
   exchange: NSE

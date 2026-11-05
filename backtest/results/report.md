@@ -168,3 +168,52 @@ CAGR n/a vs Nifty -2.24% (does not beat); Sharpe -2.07 <= 0.8; max DD -100.11% >
 
 Structural diagnosis: sizing 0.75% of equity against a 0.1% stop implies about 7.5× notional per name. Combined with Rs 20 brokerage, 0.05% slippage, and a 0.1% stop, each fade is cost-dominated (TEST cost is 38.5% of gross; win rate ~33%, PF ~0.35). The compound book is wiped out (end equity slightly negative). PDH, PDL, and swing levels all lose; longs lose more than shorts. The 8-bar cap and 15:00 hard exit cut the 1.5R tail. This is a size-and-cost problem on a tight stop, not a missing level type. Nifty is a cash-market MIS approximation. No parameters were changed after TEST.
 
+
+
+## Iteration 4 — NIFTY-MEANREVERT-DAILY
+
+Pre-registered Connors RSI-2 on `NIFTYBEES-EQ` (CNC, 95% equity, no leverage).
+Regime = Nifty 50 close > 200-day SMA. Entry next open after RSI(2) < 10.
+
+time-in-market 13.4% (45/335 days); avg hold 5.00 days; round trips 9.
+
+### Metrics
+
+| strategy | window | CAGR | Sharpe | max DD | win rate | profit factor | trades | cost % of gross | end equity |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| rsi2-bees | TRAIN | -3.64% | -1.22 | -4.40% | 0.00% | 0.00 | 3 | 38.4% | 96413 |
+| nifty | rsi2-TRAIN | 9.11% | 0.69 | -10.95% | 100.00% | inf | 1 | 4.0% | 108769 |
+| rsi2-bees | VALIDATE | 1.18% | 0.69 | -0.67% | 100.00% | inf | 2 | 53.9% | 100576 |
+| nifty | rsi2-VALIDATE | 15.53% | 1.05 | -8.72% | 100.00% | inf | 1 | 4.9% | 107110 |
+| rsi2-bees | TEST | -5.64% | -1.60 | -8.17% | 33.33% | 0.14 | 9 | 31.2% | 92578 |
+| nifty | rsi2-TEST | -3.11% | -0.18 | -15.59% | 0.00% | 0.00 | 1 | 8.8% | 95719 |
+| rsi2-bees | POOLED | -3.79% | -1.21 | -10.97% | 35.71% | 0.14 | 14 | 34.9% | 89753 |
+| nifty | rsi2-POOLED | 4.49% | 0.39 | -15.79% | 100.00% | inf | 1 | 2.8% | 112879 |
+
+TEST sample is below 15 trades. Pooled TRAIN+VALIDATE+TEST is labeled below as `POOLED` and is **not** the gate.
+
+time-in-market 8.6% (61/706 days); avg hold 4.50 days; round trips 14.
+
+
+### TEST round trips
+
+| date | side | qty | entry | exit | hold days | net P&L | reason |
+|---|---|---:|---:|---:|---:|---:|---|
+| 2025-07-23 | SELL | 334 | 284.39 | 283.53 | 8 | -622.81 | sma5 |
+| 2025-08-11 | SELL | 329 | 286.84 | 277.29 | 10 | -3471.35 | sma5 |
+| 2025-09-02 | SELL | 329 | 276.93 | 277.68 | 3 | -77.84 | sma5 |
+| 2025-10-01 | SELL | 320 | 283.69 | 280.51 | 5 | -1339.29 | sma5 |
+| 2025-11-10 | SELL | 309 | 290.40 | 289.49 | 3 | -600.80 | sma5 |
+| 2025-12-05 | SELL | 303 | 294.24 | 296.01 | 2 | 217.23 | sma5 |
+| 2025-12-31 | SELL | 304 | 293.54 | 295.31 | 2 | 218.75 | sma5 |
+| 2026-01-23 | SELL | 307 | 291.01 | 283.91 | 10 | -2495.26 | time_stop |
+| 2026-02-17 | SELL | 302 | 288.00 | 291.52 | 2 | 749.79 | sma5 |
+
+### Verdict: INSUFFICIENT SAMPLE
+
+TEST produced 9 trades (need 15). Pooled TRAIN+VALIDATE+TEST: time-in-market 8.6% (61/706 days); avg hold 4.50 days; round trips 14.
+
+Structural diagnosis: Connors-style RSI(2) < 10 only fires after a two-day collapse, so the book is sparse and the 200-day Nifty filter plus a 2024-start SMA lookback delay entries further. CNC STT 0.1% both sides plus 0.05% slippage is large versus a 1–10 day ETF fade. Exit at close > 5-day SMA often cuts the rebound; the 10-day stop and regime-off next-open flatten residual risk. No parameters were changed after TEST.
+
+Time-in-market TRAIN 3.6%, VALIDATE 5.7%, TEST 13.4%.
+
