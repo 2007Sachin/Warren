@@ -33,3 +33,31 @@ Momentum TEST: FAIL. CAGR -12.71% vs Nifty -3.11% (does not beat); Sharpe -0.70 
 ORB TEST: FAIL. CAGR -70.55% vs Nifty -2.24% (does not beat); Sharpe -3.95 <= 0.8; max DD -59.13% >= 20%.
 
 Verdict: neither strategy clears the TEST gate. A negative result is the result.
+
+## Iteration 1 — Momentum v2
+
+Universe: Nifty Next 50 plus the original 5 names (~55 CNC names). Rank 90-day return
+minus last-5-day return. Hold top 5 equal weight, rebalance every 21 sessions,
+drop names below rank 8. If Nifty 50 close is below its 200-day SMA on a rebalance day,
+flatten to cash until it closes back at or above the SMA. Long-only, no leverage.
+Same costs and TEST gate. Parameters were not tuned after seeing TEST.
+
+| strategy | window | CAGR | Sharpe | max DD | win rate | profit factor | trades | cost % of gross | end equity |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| momentum_v2 | TRAIN | -9.45% | -0.32 | -21.96% | 40.00% | 0.56 | 40 | 7.2% | 90697 |
+| nifty | momentum_v2-TRAIN | 9.11% | 0.69 | -10.95% | 100.00% | inf | 1 | 4.0% | 108769 |
+| momentum_v2 | VALIDATE | -5.54% | -0.24 | -12.86% | 35.00% | 0.78 | 20 | 8.0% | 97258 |
+| nifty | momentum_v2-VALIDATE | 15.53% | 1.05 | -8.72% | 100.00% | inf | 1 | 4.9% | 107110 |
+| momentum_v2 | TEST | -4.50% | -0.24 | -11.68% | 33.33% | 0.71 | 45 | 8.5% | 93806 |
+| nifty | momentum_v2-TEST | -3.11% | -0.18 | -15.59% | 0.00% | 0.00 | 1 | 8.8% | 95719 |
+
+TEST days in cash (no holdings, including regime filter): 49.6% (166 / 335 sessions).
+
+![Momentum v2 vs Nifty TEST](momentum_v2_test_vs_nifty.png)
+
+Momentum v2 TEST: FAIL. CAGR -4.50% vs Nifty -3.11% (does not beat); Sharpe -0.24 <= 0.8; max DD -11.68% < 20%.
+
+TEST days in cash (no holdings, including regime filter): 49.6% (166 / 335 sessions).
+
+Verdict: Momentum v2 does not clear the TEST gate. Stop momentum here; do not tune parameters.
+

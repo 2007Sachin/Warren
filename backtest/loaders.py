@@ -17,6 +17,11 @@ ORB_SYMBOLS = ["RELIANCE-EQ", "HDFCBANK-EQ", "SBIN-EQ"]
 NIFTY = "Nifty 50"
 
 
+def equity_universe() -> list[str]:
+    from data.pipeline import load_watchlist
+    return [str(s["symbol"]) for s in load_watchlist() if str(s["symbol"]).endswith("-EQ")]
+
+
 def daily_close(symbol: str, exchange: str = "NSE") -> pd.Series:
     df = load(symbol, exchange)
     ts = pd.to_datetime(df["timestamp"])

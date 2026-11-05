@@ -14,6 +14,9 @@ SKIP = 5
 REBALANCE = 21
 TOP_HOLD = 2
 TOP_KEEP = 3
+V2_HOLD = 5
+V2_KEEP = 8
+SMA_DAYS = 200
 CAPITAL = 100_000.0
 
 
@@ -27,13 +30,23 @@ def _rank_row(row: pd.Series) -> list[str]:
     return row.dropna().sort_values(ascending=False).index.tolist()
 
 
-def simulate(closes: pd.DataFrame, start: date, end: date, capital: float = CAPITAL) -> dict:
-    """Trade inside [start, end]. Ranking uses history before start."""
+def simulate(closes: pd.DataFrame, start: date, end: date, capital: float = CAPITAL,
+             top_hold: int = TOP_HOLD, top_keep: int = TOP_KEEP,
+             nifty: pd.Series | None = None, sma_days: int | None = None) -> dict:
+    """Trade inside [start, end]. Ranking uses history before start.
+
+    If `nifty` and `sma_days` are set, a rebalance day with Nifty below its
+    SMA flattens to cash until Nifty closes back at or above the SMA.
+    """
     px = closes.loc[: pd.Timestamp(end)].copy()
     sc = scores(px)
     idx = px.index
     loc = {d: i for i, d in enumerate(idx)}
     in_window = [d for d in idx if pd.Timestamp(start) <= d <= pd.Timestamp(end)]
+    nifty_sma = None
+    if nifty is not None and sma_days:
+        nifty = nifty.reindex(idx).ffill()
+        nifty_sma = nifty.rolling(sma_days, min_periods=sma_days).mean()
     if len(in_window) < 2:
         empty = pd.Series(dtype=float)
         return {"equity": empty, "trades": pd.DataFrame(), "metrics": summarize(empty, pd.DataFrame())}
@@ -43,6 +56,8 @@ def simulate(closes: pd.DataFrame, start: date, end: date, capital: float = CAPI
     trades = []
     equity_pts = []
     last_rebalance_i = None
+    cash_mode = False
+    cash_days = 0
 
     def mark(day) -> float:
         value = cash
@@ -77,16 +92,16 @@ def simulate(closes: pd.DataFrame, start: date, end: date, capital: float = CAPI
         nonlocal cash, last_rebalance_i
         row = sc.loc[day]
         ranked = _rank_row(row)
-        if len(ranked) < TOP_HOLD:
+        if len(ranked) < top_hold:
             return
-        keep = set(ranked[:TOP_KEEP])
+        keep = set(ranked[:top_keep])
         target = [s for s in ranked if s in holdings and s in keep]
         for s in ranked:
-            if len(target) >= TOP_HOLD:
+            if len(target) >= top_hold:
                 break
             if s not in target:
                 target.append(s)
-        target = target[:TOP_HOLD]
+        target = target[:top_hold]
         price_row = px.loc[day]
         # Sell names not in target.
         for sym in list(holdings):
@@ -160,13 +175,33 @@ def simulate(closes: pd.DataFrame, start: date, end: date, capital: float = CAPI
                 })
         last_rebalance_i = loc[day]
 
+    def regime_risk_off(day) -> bool:
+        if nifty_sma is None:
+            return False
+        sma = nifty_sma.loc[day]
+        px_n = nifty.loc[day]
+        if pd.isna(sma) or pd.isna(px_n):
+            return False
+        return float(px_n) < float(sma)
+
     # First day we can rank (90 bars of history).
     for day in in_window:
         i = loc[day]
         hist = sc.loc[day].dropna()
-        ready = len(hist) >= TOP_HOLD and i >= LOOKBACK
-        if ready and (last_rebalance_i is None or (i - last_rebalance_i) >= REBALANCE):
-            rebalance(day)
+        ready = len(hist) >= top_hold and i >= LOOKBACK
+        if cash_mode:
+            if not regime_risk_off(day) and ready:
+                cash_mode = False
+                rebalance(day)
+        elif ready and (last_rebalance_i is None or (i - last_rebalance_i) >= REBALANCE):
+            if regime_risk_off(day):
+                flatten(day, "regime_cash")
+                cash_mode = True
+                last_rebalance_i = i
+            else:
+                rebalance(day)
+        if not holdings:
+            cash_days += 1
         equity_pts.append((day, mark(day)))
 
     if in_window:
@@ -178,7 +213,15 @@ def simulate(closes: pd.DataFrame, start: date, end: date, capital: float = CAPI
     if tdf.empty:
         tdf = pd.DataFrame(columns=["date", "symbol", "side", "qty", "price", "gross_pnl", "cost", "net_pnl", "reason"])
     paired = _pair_round_trips(tdf)
-    return {"equity": equity, "trades": tdf, "round_trips": paired, "metrics": summarize(equity, paired)}
+    n_days = max(len(in_window), 1)
+    return {
+        "equity": equity,
+        "trades": tdf,
+        "round_trips": paired,
+        "metrics": summarize(equity, paired),
+        "cash_days": cash_days,
+        "cash_frac": cash_days / n_days,
+    }
 
 
 def _pair_round_trips(orders: pd.DataFrame) -> pd.DataFrame:
@@ -226,6 +269,21 @@ def run_windows(windows: dict[str, tuple[date, date]], capital: float = CAPITAL)
     out = {}
     for name, (start, end) in windows.items():
         out[name] = simulate(closes, start, end, capital)
+    return out
+
+
+def run_v2_windows(windows: dict[str, tuple[date, date]], capital: float = CAPITAL) -> dict:
+    from backtest.loaders import equity_universe, daily_close
+    names = equity_universe()
+    closes = close_frame(names)
+    nifty_px = daily_close(NIFTY)
+    out = {}
+    for name, (start, end) in windows.items():
+        out[name] = simulate(
+            closes, start, end, capital,
+            top_hold=V2_HOLD, top_keep=V2_KEEP,
+            nifty=nifty_px, sma_days=SMA_DAYS,
+        )
     return out
 
 

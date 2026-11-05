@@ -1,28 +1,189 @@
-# Starter watchlist. Tokens come from the Angel One instrument master
-# (execution/instruments.py): exch_seg NSE. Equities use the -EQ symbol.
-# Nifty 50 is the NSE index row with token 99926000.
+# Nifty 50 index + 5 seed equities (with 15m/5m) + Nifty Next 50 (daily only).
+# Tokens from Angel One instrument master, NSE -EQ rows.
 symbols:
-  - symbol: "Nifty 50"
-    token: "99926000"
-    exchange: NSE
-    intraday: [15m, 5m]
-  - symbol: RELIANCE-EQ
-    token: "2885"
-    exchange: NSE
-    intraday: [15m, 5m]
-  - symbol: HDFCBANK-EQ
-    token: "1333"
-    exchange: NSE
-    intraday: [15m, 5m]
-  - symbol: INFY-EQ
-    token: "1594"
-    exchange: NSE
-    intraday: [15m, 5m]
-  - symbol: TCS-EQ
-    token: "11536"
-    exchange: NSE
-    intraday: [15m, 5m]
-  - symbol: SBIN-EQ
-    token: "3045"
-    exchange: NSE
-    intraday: [15m, 5m]
+- symbol: Nifty 50
+  token: '99926000'
+  exchange: NSE
+  intraday:
+  - 15m
+  - 5m
+- symbol: RELIANCE-EQ
+  token: '2885'
+  exchange: NSE
+  intraday:
+  - 15m
+  - 5m
+- symbol: HDFCBANK-EQ
+  token: '1333'
+  exchange: NSE
+  intraday:
+  - 15m
+  - 5m
+- symbol: INFY-EQ
+  token: '1594'
+  exchange: NSE
+  intraday:
+  - 15m
+  - 5m
+- symbol: TCS-EQ
+  token: '11536'
+  exchange: NSE
+  intraday:
+  - 15m
+  - 5m
+- symbol: SBIN-EQ
+  token: '3045'
+  exchange: NSE
+  intraday:
+  - 15m
+  - 5m
+- symbol: ABB-EQ
+  token: '13'
+  exchange: NSE
+- symbol: ADANIENSOL-EQ
+  token: '10217'
+  exchange: NSE
+- symbol: ADANIGREEN-EQ
+  token: '3563'
+  exchange: NSE
+- symbol: ADANIPOWER-EQ
+  token: '17388'
+  exchange: NSE
+- symbol: AMBUJACEM-EQ
+  token: '1270'
+  exchange: NSE
+- symbol: DMART-EQ
+  token: '19913'
+  exchange: NSE
+- symbol: BAJAJHLDNG-EQ
+  token: '305'
+  exchange: NSE
+- symbol: BANKBARODA-EQ
+  token: '4668'
+  exchange: NSE
+- symbol: BPCL-EQ
+  token: '526'
+  exchange: NSE
+- symbol: BOSCHLTD-EQ
+  token: '2181'
+  exchange: NSE
+- symbol: BRITANNIA-EQ
+  token: '547'
+  exchange: NSE
+- symbol: CGPOWER-EQ
+  token: '760'
+  exchange: NSE
+- symbol: CANBK-EQ
+  token: '10794'
+  exchange: NSE
+- symbol: CHOLAFIN-EQ
+  token: '685'
+  exchange: NSE
+- symbol: CUMMINSIND-EQ
+  token: '1901'
+  exchange: NSE
+- symbol: DLF-EQ
+  token: '14732'
+  exchange: NSE
+- symbol: DIVISLAB-EQ
+  token: '10940'
+  exchange: NSE
+- symbol: GAIL-EQ
+  token: '4717'
+  exchange: NSE
+- symbol: GODREJCP-EQ
+  token: '10099'
+  exchange: NSE
+- symbol: HDFCAMC-EQ
+  token: '4244'
+  exchange: NSE
+- symbol: HAL-EQ
+  token: '2303'
+  exchange: NSE
+- symbol: HINDZINC-EQ
+  token: '1424'
+  exchange: NSE
+- symbol: POWERINDIA-EQ
+  token: '18457'
+  exchange: NSE
+- symbol: HYUNDAI-EQ
+  token: '25844'
+  exchange: NSE
+- symbol: IOC-EQ
+  token: '1624'
+  exchange: NSE
+- symbol: IRFC-EQ
+  token: '2029'
+  exchange: NSE
+- symbol: JINDALSTEL-EQ
+  token: '6733'
+  exchange: NSE
+- symbol: LTM-EQ
+  token: '17818'
+  exchange: NSE
+- symbol: MAZDOCK-EQ
+  token: '509'
+  exchange: NSE
+- symbol: MUTHOOTFIN-EQ
+  token: '23650'
+  exchange: NSE
+- symbol: PIDILITIND-EQ
+  token: '2664'
+  exchange: NSE
+- symbol: POLYCAB-EQ
+  token: '9590'
+  exchange: NSE
+- symbol: PFC-EQ
+  token: '14299'
+  exchange: NSE
+- symbol: PNB-EQ
+  token: '10666'
+  exchange: NSE
+- symbol: MOTHERSON-EQ
+  token: '4204'
+  exchange: NSE
+- symbol: ENRIN-EQ
+  token: '756871'
+  exchange: NSE
+- symbol: SIEMENS-EQ
+  token: '3150'
+  exchange: NSE
+- symbol: SOLARINDS-EQ
+  token: '13332'
+  exchange: NSE
+- symbol: TVSMOTOR-EQ
+  token: '8479'
+  exchange: NSE
+- symbol: TATACAP-EQ
+  token: '759265'
+  exchange: NSE
+- symbol: TMCV-EQ
+  token: '759782'
+  exchange: NSE
+- symbol: TATAPOWER-EQ
+  token: '3426'
+  exchange: NSE
+- symbol: TORNTPHARM-EQ
+  token: '3518'
+  exchange: NSE
+- symbol: UNIONBANK-EQ
+  token: '10753'
+  exchange: NSE
+- symbol: VBL-EQ
+  token: '18921'
+  exchange: NSE
+- symbol: VAML-EQ
+  token: '750174'
+  exchange: NSE
+- symbol: VEDL-EQ
+  token: '3063'
+  exchange: NSE
+- symbol: IDEA-EQ
+  token: '14366'
+  exchange: NSE
+- symbol: WIPRO-EQ
+  token: '3787'
+  exchange: NSE
+- symbol: ZYDUSLIFE-EQ
+  token: '7929'
+  exchange: NSE
