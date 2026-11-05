@@ -61,3 +61,70 @@ TEST days in cash (no holdings, including regime filter): 49.6% (166 / 335 sessi
 
 Verdict: Momentum v2 does not clear the TEST gate. Stop momentum here; do not tune parameters.
 
+## Iteration 2 — HARMONIC-XABCD
+
+Pre-registered 15-minute XABCD harmonics (ZigZag 2% for the TEST decision).
+Conservative choices: ±0.05 XB/XD; C beyond A is Group 2; coverage-false days dropped before ZigZag;
+entry on the first close in the PRZ after the confirmation bar; same-bar stop beats target;
+20% equity notional, no leverage; Rs 20 flat MIS brokerage from costs.py (not min(Rs 20, 0.03%)).
+Universe: RELIANCE, HDFCBANK, INFY, TCS, SBIN. Skip `backtest_ok=false` days.
+MIS costs from `backtest/costs.py`. Shorts modelled as cash-market MIS.
+
+### Metrics (2% ZigZag)
+
+| strategy | window | CAGR | Sharpe | max DD | win rate | profit factor | trades | cost % of gross | end equity |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| harmonic-2pct | VALIDATE | -1.24% | -2.42 | -1.53% | 0.00% | 0.00 | 8 | 94.2% | 98473 |
+| nifty | harmonic-VALIDATE | 4.10% | 0.46 | -5.72% | 100.00% | inf | 1 | 14.2% | 102142 |
+| harmonic-2pct | TEST | -1.85% | -2.97 | -2.28% | 6.25% | 0.03 | 16 | 94.6% | 97716 |
+| nifty | harmonic-TEST | -2.24% | -0.07 | -10.61% | 0.00% | 0.00 | 1 | 26.4% | 98327 |
+
+### Pattern-type breakdown (2%, VALIDATE + TEST combined)
+
+| pattern | trades | wins | losses | net P&L | profit factor |
+|---|---:|---:|---:|---:|---:|
+| Alt Shark | 2 | 0 | 2 | -468 | 0.00 |
+| Bat | 1 | 0 | 1 | -46 | 0.00 |
+| Butterfly | 3 | 0 | 3 | -368 | 0.00 |
+| Cypher | 2 | 0 | 2 | -348 | 0.00 |
+| EEShark | 6 | 1 | 5 | -952 | 0.07 |
+| EShark | 4 | 0 | 4 | -644 | 0.00 |
+| Gartley | 2 | 0 | 2 | -253 | 0.00 |
+| Shark | 4 | 0 | 4 | -733 | 0.00 |
+
+### 3% ZigZag sensitivity (not used for TEST)
+
+| strategy | window | CAGR | Sharpe | max DD | win rate | profit factor | trades | cost % of gross | end equity |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| harmonic-3pct | VALIDATE | -0.63% | -1.87 | -0.78% | 0.00% | 0.00 | 5 | 153.0% | 99225 |
+| nifty | harmonic3-VALIDATE | 4.10% | 0.46 | -5.72% | 100.00% | inf | 1 | 14.2% | 102142 |
+| harmonic-3pct | TEST | -0.73% | -2.09 | -0.90% | 0.00% | 0.00 | 6 | 136.1% | 99096 |
+| nifty | harmonic3-TEST | -2.24% | -0.07 | -10.61% | 0.00% | 0.00 | 1 | 26.4% | 98327 |
+
+### Verdict: INSUFFICIENT SAMPLE
+
+TEST produced 16 trades (need 20). Aggregate gate metrics are not used.
+
+Structural diagnosis: a confirmed 2% ZigZag on 15-minute cash bars is a slow geometry clock, D is only tradable after a further full-threshold reversal, and entry still waits for a close back inside the PRZ, so most completions never fill. The 10-bar time stop (two and a half hours) then cuts anything that does fill before a 0.382 AD retracement can reasonably complete. That is a mismatch between pattern scale and holding time, not a missing Fibonacci ratio. Shorts are a cash-market approximation. No parameters were changed after TEST.
+
+TEST trades (2%):
+
+| date | symbol | pattern | side | entry | exit | net | reason |
+|---|---|---|---|---:|---:|---:|---|
+| 2026-03-24 | HDFCBANK-EQ | EEShark | LONG | 751.00 | 756.70 | 75.69 | time_stop |
+| 2026-05-14 | HDFCBANK-EQ | EEShark | LONG | 771.70 | 771.47 | -218.10 | target_382+target_618 |
+| 2026-03-10 | INFY-EQ | Cypher | LONG | 1302.10 | 1291.80 | -212.73 | target_382+time_stop |
+| 2026-06-08 | INFY-EQ | Gartley | LONG | 1194.00 | 1190.80 | -123.02 | time_stop |
+| 2026-04-15 | INFY-EQ | Shark | LONG | 1308.60 | 1299.26 | -332.20 | target_382+target_618 |
+| 2026-06-19 | RELIANCE-EQ | Alt Shark | SHORT | 1316.70 | 1339.55 | -189.31 | target_382+stop |
+| 2026-07-24 | RELIANCE-EQ | Butterfly | LONG | 1279.40 | 1281.10 | -46.49 | time_stop |
+| 2026-03-12 | RELIANCE-EQ | Cypher | LONG | 1405.50 | 1405.10 | -134.99 | target_382+time_stop |
+| 2026-06-01 | SBIN-EQ | Bat | SHORT | 958.85 | 951.05 | -45.52 | target_382+target_618 |
+| 2026-07-10 | SBIN-EQ | EShark | LONG | 1028.00 | 1024.70 | -123.60 | target_382+time_stop |
+| 2026-04-16 | SBIN-EQ | EShark | SHORT | 1064.50 | 1069.20 | -178.50 | target_382+time_stop |
+| 2026-05-08 | SBIN-EQ | Shark | SHORT | 1087.40 | 1080.19 | -61.84 | target_382+target_618 |
+| 2026-06-05 | TCS-EQ | Alt Shark | LONG | 2248.70 | 2222.60 | -279.06 | time_stop |
+| 2026-09-02 | TCS-EQ | EEShark | SHORT | 2343.80 | 2337.50 | -20.97 | time_stop |
+| 2026-05-06 | TCS-EQ | EShark | LONG | 2445.30 | 2420.60 | -211.49 | target_382+time_stop |
+| 2026-08-14 | TCS-EQ | Shark | SHORT | 2344.90 | 2355.50 | -182.02 | target_382+time_stop |
+
