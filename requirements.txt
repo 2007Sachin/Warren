@@ -1,0 +1,10 @@
+smartapi-python
+pyotp
+pandas
+pyarrow
+duckdb
+requests
+python-dotenv
+supabase
+yfinance
+jugaad-data

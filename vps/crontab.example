@@ -1,0 +1,7 @@
+# Cron for the Mumbai VPS (Asia/Kolkata). Install: crontab vps/crontab.example
+# Morning login (tokens expire daily - regulatory requirement)
+30 7 * * 1-5  cd /opt/mirror-trading-bot && /usr/bin/python3 execution/angel_auth.py >> logs/login.log 2>&1
+# Daily instrument master refresh
+0 8 * * 1-5   cd /opt/mirror-trading-bot && /usr/bin/python3 execution/instruments.py >> logs/instruments.log 2>&1
+# Strategy runner: market session 09:10-15:35 (your runner script goes here)
+# 10 9 * * 1-5  cd /opt/mirror-trading-bot && /usr/bin/python3 execution/runner.py >> logs/runner.log 2>&1
