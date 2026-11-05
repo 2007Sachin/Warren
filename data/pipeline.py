@@ -21,6 +21,10 @@ if str(ROOT) not in sys.path:
 
 from data.fetch_candles import fetch
 
+DEFAULT_PAUSE = 2.5
+# 30s, 90s, 270s — three retries after the first attempt.
+RATE_BACKOFFS = (30, 90, 270)
+
 log = logging.getLogger("pipeline")
 
 WATCHLIST = ROOT / "config" / "watchlist.yaml"
@@ -56,22 +60,39 @@ def merge(existing: pd.DataFrame, fresh: pd.DataFrame) -> pd.DataFrame:
     return df.sort_values("timestamp").reset_index(drop=True)
 
 
+def _rate_limited(exc: BaseException) -> bool:
+    msg = str(exc).lower()
+    return "ag8001" in msg or "exceeding access rate" in msg or "invalid token" in msg
+
+
 def _fetch_with_retry(token: str, exchange: str, symbol: str, from_dt: str, to_dt: str):
     last_error = None
-    for attempt in (1, 2):
+    backoffs = list(RATE_BACKOFFS)
+    attempt = 0
+    while True:
+        attempt += 1
         try:
-            return fetch(token, exchange, "1d", from_dt, to_dt, pause=1.0), None
+            return fetch(token, exchange, "1d", from_dt, to_dt, pause=DEFAULT_PAUSE), None
         except Exception as exc:
             last_error = exc
-            log.warning("%s %s attempt %d failed: %s", exchange, symbol, attempt, exc)
-            if attempt == 1:
-                # Rate-limit responses need longer than the 1 req/sec pace.
-                time.sleep(5.0)
-    log.error("skipping %s %s after retry: %s", exchange, symbol, last_error)
+            if _rate_limited(exc) and backoffs:
+                wait = backoffs.pop(0)
+                log.warning(
+                    "%s %s attempt %d rate-limited (%s); retry in %ss",
+                    exchange, symbol, attempt, exc, wait,
+                )
+                time.sleep(wait)
+                continue
+            if not _rate_limited(exc) and attempt == 1:
+                log.warning("%s %s attempt %d failed: %s", exchange, symbol, attempt, exc)
+                time.sleep(DEFAULT_PAUSE)
+                continue
+            break
+    log.error("skipping %s %s after retries: %s", exchange, symbol, last_error)
     return None, last_error
 
 
-def run(path: Path = WATCHLIST) -> list[tuple[str, str]]:
+def run(path: Path = WATCHLIST, only: set[str] | None = None) -> list[tuple[str, str]]:
     load_dotenv(ROOT / ".env")
     symbols = load_watchlist(path)
     to_dt = datetime.now(IST).strftime("%Y-%m-%d 15:30")
@@ -80,6 +101,8 @@ def run(path: Path = WATCHLIST) -> list[tuple[str, str]]:
 
     for item in symbols:
         symbol = str(item["symbol"])
+        if only and symbol not in only:
+            continue
         exchange = str(item["exchange"])
         token = str(item["token"])
         dest = candle_path(exchange, symbol)
@@ -105,9 +128,15 @@ def run(path: Path = WATCHLIST) -> list[tuple[str, str]]:
 
 
 if __name__ == "__main__":
+    import argparse
+
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(name)s %(message)s",
     )
-    failed = run()
+    parser = argparse.ArgumentParser(description="Fetch daily watchlist candles")
+    parser.add_argument("--symbol", action="append", help="Limit to these watchlist symbols")
+    args = parser.parse_args()
+    only = set(args.symbol) if args.symbol else None
+    failed = run(only=only)
     sys.exit(1 if failed else 0)
