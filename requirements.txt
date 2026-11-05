@@ -5,6 +5,7 @@ pyarrow
 duckdb
 requests
 python-dotenv
+pyyaml
 supabase
 yfinance
 jugaad-data

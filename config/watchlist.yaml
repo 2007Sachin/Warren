@@ -1,0 +1,22 @@
+# Starter watchlist. Tokens come from the Angel One instrument master
+# (execution/instruments.py): exch_seg NSE. Equities use the -EQ symbol.
+# Nifty 50 is the NSE index row with token 99926000.
+symbols:
+  - symbol: "Nifty 50"
+    token: "99926000"
+    exchange: NSE
+  - symbol: RELIANCE-EQ
+    token: "2885"
+    exchange: NSE
+  - symbol: HDFCBANK-EQ
+    token: "1333"
+    exchange: NSE
+  - symbol: INFY-EQ
+    token: "1594"
+    exchange: NSE
+  - symbol: TCS-EQ
+    token: "11536"
+    exchange: NSE
+  - symbol: SBIN-EQ
+    token: "3045"
+    exchange: NSE

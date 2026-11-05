@@ -13,9 +13,22 @@ INTERVALS = {"1m": "ONE_MINUTE", "5m": "FIVE_MINUTE", "15m": "FIFTEEN_MINUTE",
              "1h": "ONE_HOUR", "1d": "ONE_DAY"}
 
 
+def _session():
+    """Cached sessions store jwtToken already prefixed with 'Bearer '.
+
+    SmartConnect._request adds that prefix again, which the historical API
+    rejects as AG8001. Strip a single prefix here; do not change auth.
+    """
+    obj = get_session()
+    token = getattr(obj, "access_token", None)
+    if isinstance(token, str) and token.lower().startswith("bearer "):
+        obj.setAccessToken(token.split(" ", 1)[1].strip())
+    return obj
+
+
 def fetch(symbol_token: str, exchange: str, interval: str, from_dt: str, to_dt: str,
           pause: float = 1.0) -> pd.DataFrame:
-    obj = get_session()
+    obj = _session()
     resp = obj.getCandleData({
         "exchange": exchange,
         "symboltoken": symbol_token,
