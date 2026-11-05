@@ -282,3 +282,84 @@ CAGR 1.09% vs Nifty -3.11% (beats); Sharpe 0.15 <= 0.8; max DD -8.67% < 20%
 
 Structural diagnosis: TEST does have fat tails (top-5 winners are 75% of winning P&L; PF 1.11; 38% win rate) and it beats Nifty CAGR with DD under 20%. Sharpe 0.15 fails because half the TEST days are flat (regime-off 51%) while the 20-day stop still cuts a string of small CNC losses (STT 0.1% both sides plus 0.05% slippage). The 5-day regime-off flatten on 2026-03-09 booked several winners at once, then the book stayed out. This is a occupancy-and-cost problem on a working tail, not a missing channel. No parameters were changed after TEST.
 
+
+
+## Iteration 6 — HARMONIC-XABCD-DAILY
+
+Pre-registered daily XABCD (same Group 1/2 ratios as #4). ZigZag 5% on daily closes
+(7% sensitivity is not the TEST decision). Long-only CNC, 10% equity, max 10 names.
+Bearish patterns skipped. Universe: 55 cash equities.
+
+### Metrics (5% ZigZag)
+
+| strategy | window | CAGR | Sharpe | max DD | win rate | profit factor | trades | cost % of gross | end equity |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| harmonic-d-5pct | TRAIN | -0.27% | -0.57 | -0.81% | 44.44% | 5.20 | 9 | 11.8% | 99236 |
+| nifty | harmd-TRAIN | 9.11% | 0.69 | -10.95% | 100.00% | inf | 1 | 4.0% | 108769 |
+| harmonic-d-5pct | VALIDATE | -0.50% | -0.53 | -2.65% | 41.18% | 0.57 | 17 | 32.8% | 98619 |
+| nifty | harmd-VALIDATE | 15.53% | 1.05 | -8.72% | 100.00% | inf | 1 | 4.9% | 107110 |
+| harmonic-d-5pct | TEST | -2.22% | -2.00 | -6.26% | 32.14% | 0.20 | 28 | 33.1% | 93914 |
+| nifty | harmd-TEST | -3.11% | -0.18 | -15.59% | 0.00% | 0.00 | 1 | 8.8% | 95719 |
+
+### Pattern-type breakdown (5%, TRAIN+VALIDATE+TEST)
+
+| pattern | trades | wins | losses | net P&L | profit factor |
+|---|---:|---:|---:|---:|---:|
+| Alt Gartley | 2 | 0 | 2 | -956 | 0.00 |
+| Alt Shark | 8 | 1 | 7 | -2167 | 0.04 |
+| Bat | 5 | 4 | 1 | 5495 | 8.18 |
+| Butterfly | 2 | 1 | 1 | 362 | 6.82 |
+| Crab | 6 | 4 | 2 | 250 | 1.42 |
+| Cypher | 11 | 3 | 8 | -1808 | 0.18 |
+| EEShark | 1 | 0 | 1 | -365 | 0.00 |
+| EShark | 9 | 1 | 8 | -2483 | 0.03 |
+| Gartley | 3 | 2 | 1 | -464 | 0.37 |
+| Shark | 7 | 4 | 3 | -129 | 0.89 |
+
+### 7% ZigZag sensitivity (not used for TEST)
+
+| strategy | window | CAGR | Sharpe | max DD | win rate | profit factor | trades | cost % of gross | end equity |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| harmonic-d-7pct | TRAIN | -0.99% | -1.00 | -2.76% | 20.00% | 2.07 | 5 | 5.8% | 97241 |
+| harmonic-d-7pct | VALIDATE | -1.24% | -1.12 | -3.47% | 28.57% | 0.06 | 14 | 38.6% | 96575 |
+| harmonic-d-7pct | TEST | -1.27% | -1.04 | -3.53% | 18.18% | 0.26 | 22 | 42.0% | 96471 |
+
+### Verdict: FAILED
+
+CAGR -2.22% vs Nifty -3.11% (beats); Sharpe -2.00 <= 0.8; max DD -6.26% < 20%
+
+Structural diagnosis: TEST has 28 round trips (sample ok) and still loses on Sharpe (−2.00) with PF 0.20. CNC STT plus 0.05% slippage is 33% of gross; 0.382/0.618 scale-outs often fill inside that cost. Group 2 sharks/cyphers dominate the loss list; Bat is the only pooled winner. Bearish patterns were skipped (CNC cannot short overnight). This is cost-versus-target-scale, not a missing Fibonacci. No parameters were changed after TEST.
+
+TEST trades (5%):
+
+| date | symbol | pattern | side | entry | exit | net | reason |
+|---|---|---|---|---:|---:|---:|---|
+| 2025-07-02 | PNB-EQ | EShark | LONG | 113.07 | 110.06 | -228.02 | target_382+target_618 |
+| 2025-07-02 | HAL-EQ | Shark | LONG | 4912.20 | 4498.00 | -522.82 | target_382+time_stop |
+| 2025-07-03 | BANKBARODA-EQ | EShark | LONG | 243.05 | 242.15 | -244.59 | target_382+target_618 |
+| 2025-07-04 | HINDZINC-EQ | Crab | LONG | 445.55 | 441.00 | -425.16 | target_382+target_618 |
+| 2025-07-08 | VEDL-EQ | Alt Shark | LONG | 169.97 | 167.83 | -370.36 | target_382+target_618 |
+| 2025-07-11 | SIEMENS-EQ | Cypher | LONG | 3323.10 | 3151.91 | -590.31 | stop |
+| 2025-08-04 | IRFC-EQ | Cypher | LONG | 126.89 | 126.54 | -273.14 | target_382+target_618 |
+| 2025-08-11 | ADANIGREEN-EQ | Gartley | LONG | 914.05 | 934.76 | 2.76 | target_382+target_618 |
+| 2025-08-11 | DIVISLAB-EQ | Crab | LONG | 5914.50 | 5933.21 | -169.81 | target_382+target_618 |
+| 2025-08-22 | INFY-EQ | Shark | LONG | 1496.40 | 1549.05 | 73.24 | target_382+target_618 |
+| 2025-11-18 | MAZDOCK-EQ | Alt Gartley | LONG | 2800.50 | 2572.14 | -483.30 | target_382+stop |
+| 2026-01-09 | CGPOWER-EQ | Alt Shark | LONG | 614.25 | 595.84 | -532.79 | target_382+target_618 |
+| 2026-02-01 | TATAPOWER-EQ | Crab | LONG | 366.30 | 380.40 | 134.56 | target_382+time_stop |
+| 2026-02-12 | ZYDUSLIFE-EQ | Cypher | LONG | 887.30 | 921.75 | 234.67 | target_382+time_stop |
+| 2026-02-19 | HAL-EQ | EEShark | LONG | 4251.10 | 4010.42 | -365.11 | target_382+stop |
+| 2026-03-20 | TMCV-EQ | EShark | LONG | 417.25 | 423.62 | 69.81 | stop |
+| 2026-03-20 | TVSMOTOR-EQ | Alt Shark | LONG | 3572.80 | 3316.44 | -389.85 | target_382+stop |
+| 2026-04-06 | MAZDOCK-EQ | Butterfly | LONG | 2264.60 | 2322.84 | -62.20 | target_382+target_618 |
+| 2026-04-10 | BANKBARODA-EQ | Cypher | LONG | 274.24 | 285.08 | 25.95 | target_382+target_618 |
+| 2026-06-17 | AMBUJACEM-EQ | Bat | LONG | 426.05 | 439.95 | 63.81 | target_382+target_618 |
+| 2026-09-08 | DMART-EQ | Gartley | LONG | 4054.90 | 3720.20 | -740.25 | time_stop |
+| 2026-09-23 | TATACAP-EQ | EShark | LONG | 341.10 | 326.34 | -418.94 | target_382+target_618 |
+| 2026-09-25 | VEDL-EQ | Shark | LONG | 267.50 | 249.72 | -426.39 | target_382+stop |
+| 2026-09-30 | DLF-EQ | EShark | LONG | 653.00 | 660.96 | -94.40 | target_382+target_618 |
+| 2026-10-09 | ABB-EQ | Alt Shark | LONG | 7005.00 | 6646.07 | -426.89 | stop |
+| 2026-10-13 | TCS-EQ | Bat | LONG | 2125.00 | 2305.12 | 414.78 | target_382+target_618 |
+| 2026-10-21 | ADANIENSOL-EQ | Cypher | LONG | 1397.60 | 1324.00 | -513.63 | time_stop |
+| 2026-11-05 | TMCV-EQ | Butterfly | LONG | 402.80 | 429.05 | 424.47 | target_382+window_end |
+
