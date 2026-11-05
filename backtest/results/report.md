@@ -217,3 +217,68 @@ Structural diagnosis: Connors-style RSI(2) < 10 only fires after a two-day colla
 
 Time-in-market TRAIN 3.6%, VALIDATE 5.7%, TEST 13.4%.
 
+
+
+## Iteration 5 — DONCHIAN-TREND-DAILY
+
+Pre-registered Donchian-55 breakout, 55 NSE cash names, CNC, 12.5% equity, max 8.
+New entries only when Nifty 50 close > 200-day SMA. Fills at next open.
+
+round trips 29; avg hold 45.3 days; top-5 winners = 75.0% of winning P&L; flat (no position) 49.3% of days; regime-off 51.0% of days.
+Top-5 winners are 75.0% of winning P&L (fat-tail trending).
+
+### Metrics
+
+| strategy | window | CAGR | Sharpe | max DD | win rate | profit factor | trades | cost % of gross | end equity |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| donchian-55 | TRAIN | -5.41% | -1.39 | -5.79% | 11.11% | 0.18 | 9 | 10.4% | 94676 |
+| nifty | donchian-TRAIN | 9.11% | 0.69 | -10.95% | 100.00% | inf | 1 | 4.0% | 108769 |
+| donchian-55 | VALIDATE | 0.80% | 0.13 | -6.69% | 50.00% | 1.08 | 12 | 9.9% | 100390 |
+| nifty | donchian-VALIDATE | 15.53% | 1.05 | -8.72% | 100.00% | inf | 1 | 4.9% | 107110 |
+| donchian-55 | TEST | 1.09% | 0.15 | -8.67% | 37.93% | 1.11 | 29 | 8.8% | 101450 |
+| nifty | donchian-TEST | -3.11% | -0.18 | -15.59% | 0.00% | 0.00 | 1 | 8.8% | 95719 |
+
+TRAIN round trips 9; avg hold 19.3 days; top-5 winners = 100.0% of winning P&L; flat (no position) 83.9% of days; regime-off 84.7% of days.
+VALIDATE round trips 12; avg hold 33.3 days; top-5 winners = 96.6% of winning P&L; flat (no position) 55.3% of days; regime-off 59.3% of days.
+TEST round trips 29; avg hold 45.3 days; top-5 winners = 75.0% of winning P&L; flat (no position) 49.3% of days; regime-off 51.0% of days.
+
+### TEST round trips
+
+| date | symbol | qty | entry | exit | hold days | net P&L | reason |
+|---|---|---:|---:|---:|---:|---:|---|
+| 2025-07-22 | RELIANCE-EQ | 8 | 1528.40 | 1427.40 | 15 | -891.16 | donchian20 |
+| 2025-08-01 | PNB-EQ | 110 | 113.10 | 105.30 | 23 | -941.74 | donchian20 |
+| 2025-08-01 | BPCL-EQ | 35 | 345.80 | 329.00 | 20 | -671.11 | donchian20 |
+| 2025-08-01 | IOC-EQ | 81 | 152.02 | 145.33 | 20 | -625.71 | donchian20 |
+| 2025-08-04 | ZYDUSLIFE-EQ | 12 | 1005.70 | 949.95 | 24 | -751.89 | donchian20 |
+| 2025-08-11 | AMBUJACEM-EQ | 20 | 596.45 | 580.15 | 28 | -408.98 | donchian20 |
+| 2025-09-16 | TORNTPHARM-EQ | 3 | 3560.00 | 3531.70 | 37 | -164.44 | donchian20 |
+| 2025-09-29 | DMART-EQ | 2 | 4584.90 | 4500.00 | 29 | -244.63 | donchian20 |
+| 2025-10-08 | HYUNDAI-EQ | 5 | 2423.40 | 2455.10 | 35 | 74.22 | donchian20 |
+| 2025-10-27 | CGPOWER-EQ | 15 | 794.65 | 727.00 | 28 | -1096.66 | donchian20 |
+| 2025-10-30 | HDFCAMC-EQ | 4 | 2903.75 | 2700.75 | 47 | -893.29 | donchian20 |
+| 2025-11-07 | HINDZINC-EQ | 25 | 485.10 | 465.00 | 25 | -585.82 | donchian20 |
+| 2025-11-25 | POLYCAB-EQ | 1 | 6680.00 | 7420.00 | 100 | 671.38 | donchian20 |
+| 2025-12-23 | CHOLAFIN-EQ | 7 | 1747.20 | 1605.00 | 41 | -1078.29 | donchian20 |
+| 2026-01-06 | CUMMINSIND-EQ | 3 | 3495.00 | 4309.80 | 124 | 2361.64 | donchian20 |
+| 2026-01-07 | RELIANCE-EQ | 7 | 1575.00 | 1510.00 | 29 | -535.04 | donchian20 |
+| 2026-01-12 | ADANIENSOL-EQ | 12 | 971.90 | 960.60 | 51 | -218.06 | donchian20 |
+| 2026-01-21 | IDEA-EQ | 1354 | 9.25 | 10.13 | 72 | 1104.45 | donchian20 |
+| 2026-01-28 | GODREJCP-EQ | 8 | 1273.90 | 1174.00 | 14 | -876.18 | donchian20 |
+| 2026-02-02 | MUTHOOTFIN-EQ | 4 | 2800.00 | 3480.00 | 115 | 2634.65 | donchian20 |
+| 2026-02-02 | HINDZINC-EQ | 19 | 610.00 | 565.00 | 28 | -936.15 | donchian20 |
+| 2026-03-09 | TVSMOTOR-EQ | 4 | 2980.00 | 3699.00 | 146 | 2788.23 | regime_off |
+| 2026-03-09 | SBIN-EQ | 12 | 958.75 | 1115.00 | 84 | 1790.00 | regime_off |
+| 2026-03-09 | UNIONBANK-EQ | 79 | 163.60 | 181.51 | 43 | 1326.26 | regime_off |
+| 2026-03-09 | VEDL-EQ | 48 | 242.12 | 265.34 | 37 | 1030.35 | regime_off |
+| 2026-03-09 | JINDALSTEL-EQ | 11 | 1125.00 | 1157.00 | 28 | 266.64 | regime_off |
+| 2026-03-09 | ABB-EQ | 1 | 5440.00 | 5982.00 | 27 | 477.44 | regime_off |
+| 2026-03-09 | PFC-EQ | 30 | 415.70 | 395.00 | 22 | -705.18 | regime_off |
+| 2026-03-09 | IOC-EQ | 72 | 176.99 | 158.00 | 21 | -1451.17 | regime_off |
+
+### Verdict: FAILED
+
+CAGR 1.09% vs Nifty -3.11% (beats); Sharpe 0.15 <= 0.8; max DD -8.67% < 20%
+
+Structural diagnosis: TEST does have fat tails (top-5 winners are 75% of winning P&L; PF 1.11; 38% win rate) and it beats Nifty CAGR with DD under 20%. Sharpe 0.15 fails because half the TEST days are flat (regime-off 51%) while the 20-day stop still cuts a string of small CNC losses (STT 0.1% both sides plus 0.05% slippage). The 5-day regime-off flatten on 2026-03-09 booked several winners at once, then the book stayed out. This is a occupancy-and-cost problem on a working tail, not a missing channel. No parameters were changed after TEST.
+
