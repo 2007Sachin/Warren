@@ -363,3 +363,100 @@ TEST trades (5%):
 | 2026-10-21 | ADANIENSOL-EQ | Cypher | LONG | 1397.60 | 1324.00 | -513.63 | time_stop |
 | 2026-11-05 | TMCV-EQ | Butterfly | LONG | 402.80 | 429.05 | 424.47 | target_382+window_end |
 
+
+
+## Iteration 7 — DONCHIAN-TREND-DAILY-V2
+
+Last Donchian-family run. Same 55/20 channel, 12.5% x 8, CNC. Regime is each
+name's close vs its own 200-day SMA (no index filter). Final iteration.
+
+round trips 53; avg hold 44.4 days; occupancy 99.7% of days (avg 6.89/8 slots); top-5 winners = 55.9% of winning P&L; median regime-off days/name 141; mean name-days off 43.0%.
+Top-5 winners are 55.9% of winning P&L (fat-tail trending).
+
+### Metrics
+
+| strategy | window | CAGR | Sharpe | max DD | win rate | profit factor | trades | cost % of gross | end equity |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| donchian-v2 | TRAIN | -5.14% | -1.39 | -5.72% | 11.11% | 0.14 | 9 | 11.7% | 94939 |
+| nifty | donchian-v2-TRAIN | 9.11% | 0.69 | -10.95% | 100.00% | inf | 1 | 4.0% | 108769 |
+| donchian-v2 | VALIDATE | 19.54% | 1.32 | -7.31% | 53.33% | 2.48 | 15 | 5.7% | 109101 |
+| nifty | donchian-v2-VALIDATE | 15.53% | 1.05 | -8.72% | 100.00% | inf | 1 | 4.9% | 107110 |
+| donchian-v2 | TEST | 10.88% | 0.74 | -11.00% | 43.40% | 1.75 | 53 | 8.2% | 114715 |
+| nifty | donchian-v2-TEST | -3.11% | -0.18 | -15.59% | 0.00% | 0.00 | 1 | 8.8% | 95719 |
+
+### TEST three-way vs #7
+
+| strategy | window | CAGR | Sharpe | max DD | win rate | profit factor | trades | cost % of gross | end equity | occupancy | top-5 win share |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| donchian-v2 | TEST | 10.88% | 0.74 | -11.00% | 43.40% | 1.75 | 53 | 8.2% | 114715 | 99.7% | 55.9% |
+| donchian-#7 | TEST | 1.09% | 0.15 | -8.67% | 37.93% | 1.11 | 29 | 8.8% | 101450 | 50.7% | 75.0% |
+| nifty | TEST | -3.11% | -0.18 | -15.59% | 0.00% | 0.00 | 1 | 8.8% | 95719 | 100% | n/a |
+
+TRAIN round trips 9; avg hold 19.2 days; occupancy 16.9% of days (avg 0.68/8 slots); top-5 winners = 100.0% of winning P&L; median regime-off days/name 216; mean name-days off 81.8%.
+VALIDATE round trips 15; avg hold 38.9 days; occupancy 99.2% of days (avg 4.68/8 slots); top-5 winners = 98.5% of winning P&L; median regime-off days/name 91; mean name-days off 64.0%.
+TEST round trips 53; avg hold 44.4 days; occupancy 99.7% of days (avg 6.89/8 slots); top-5 winners = 55.9% of winning P&L; median regime-off days/name 141; mean name-days off 43.0%.
+
+### TEST round trips
+
+| date | symbol | qty | entry | exit | hold days | net P&L | reason |
+|---|---|---:|---:|---:|---:|---:|---|
+| 2025-07-22 | RELIANCE-EQ | 8 | 1528.40 | 1427.40 | 15 | -891.16 | donchian20 |
+| 2025-08-01 | PNB-EQ | 110 | 113.10 | 105.30 | 23 | -941.74 | donchian20 |
+| 2025-08-01 | BPCL-EQ | 35 | 345.80 | 329.00 | 20 | -671.11 | donchian20 |
+| 2025-08-01 | IOC-EQ | 81 | 152.02 | 145.33 | 20 | -625.71 | donchian20 |
+| 2025-08-04 | ZYDUSLIFE-EQ | 12 | 1005.70 | 949.95 | 24 | -751.89 | donchian20 |
+| 2025-08-11 | AMBUJACEM-EQ | 20 | 596.45 | 580.15 | 28 | -408.98 | donchian20 |
+| 2025-09-16 | TORNTPHARM-EQ | 3 | 3560.00 | 3531.70 | 37 | -164.44 | donchian20 |
+| 2025-09-29 | DMART-EQ | 2 | 4584.90 | 4500.00 | 29 | -244.63 | donchian20 |
+| 2025-10-08 | HYUNDAI-EQ | 5 | 2423.40 | 2455.10 | 35 | 74.22 | donchian20 |
+| 2025-10-27 | CGPOWER-EQ | 15 | 794.65 | 727.00 | 28 | -1096.66 | donchian20 |
+| 2025-10-30 | HDFCAMC-EQ | 4 | 2903.75 | 2700.75 | 47 | -893.29 | donchian20 |
+| 2025-11-07 | HINDZINC-EQ | 25 | 485.10 | 465.00 | 25 | -585.82 | donchian20 |
+| 2025-11-25 | POLYCAB-EQ | 1 | 6680.00 | 7420.00 | 100 | 671.38 | donchian20 |
+| 2025-12-23 | CHOLAFIN-EQ | 7 | 1747.20 | 1605.00 | 41 | -1078.29 | donchian20 |
+| 2026-01-06 | CUMMINSIND-EQ | 3 | 3495.00 | 4309.80 | 124 | 2361.64 | donchian20 |
+| 2026-01-07 | RELIANCE-EQ | 7 | 1575.00 | 1510.00 | 29 | -535.04 | donchian20 |
+| 2026-01-12 | ADANIENSOL-EQ | 12 | 971.90 | 960.60 | 51 | -218.06 | donchian20 |
+| 2026-01-21 | IDEA-EQ | 1354 | 9.25 | 10.13 | 72 | 1104.45 | donchian20 |
+| 2026-01-28 | GODREJCP-EQ | 8 | 1273.90 | 1174.00 | 14 | -876.18 | donchian20 |
+| 2026-02-02 | MUTHOOTFIN-EQ | 4 | 2800.00 | 3480.00 | 115 | 2634.65 | donchian20 |
+| 2026-02-02 | HINDZINC-EQ | 19 | 610.00 | 565.00 | 28 | -936.15 | donchian20 |
+| 2026-03-09 | IOC-EQ | 72 | 176.99 | 158.00 | 21 | -1451.17 | donchian20 |
+| 2026-03-10 | TVSMOTOR-EQ | 4 | 2980.00 | 3708.00 | 147 | 2824.17 | donchian20 |
+| 2026-03-10 | JINDALSTEL-EQ | 11 | 1125.00 | 1154.90 | 29 | 243.58 | donchian20 |
+| 2026-03-16 | SBIN-EQ | 12 | 958.75 | 1048.70 | 89 | 995.59 | donchian20 |
+| 2026-03-16 | UNIONBANK-EQ | 79 | 163.60 | 172.20 | 48 | 591.88 | donchian20 |
+| 2026-03-20 | VEDL-EQ | 48 | 242.12 | 250.73 | 46 | 330.12 | donchian20 |
+| 2026-04-01 | PFC-EQ | 30 | 415.70 | 393.00 | 37 | -765.09 | donchian20 |
+| 2026-04-07 | TATAPOWER-EQ | 31 | 402.15 | 381.95 | 15 | -710.36 | regime_off |
+| 2026-05-12 | ABB-EQ | 1 | 5440.00 | 6360.00 | 68 | 854.87 | donchian20 |
+| 2026-05-19 | PFC-EQ | 28 | 447.80 | 429.70 | 23 | -591.36 | donchian20 |
+| 2026-05-20 | DMART-EQ | 2 | 4228.40 | 4235.00 | 32 | -59.73 | donchian20 |
+| 2026-07-06 | CUMMINSIND-EQ | 2 | 5030.00 | 5479.00 | 57 | 818.86 | donchian20 |
+| 2026-07-08 | SIEMENS-EQ | 3 | 3600.00 | 3479.10 | 57 | -442.19 | donchian20 |
+| 2026-07-16 | IDEA-EQ | 1017 | 13.44 | 13.79 | 40 | 266.66 | donchian20 |
+| 2026-07-20 | ADANIPOWER-EQ | 76 | 162.00 | 215.75 | 72 | 3994.22 | donchian20 |
+| 2026-07-24 | ADANIGREEN-EQ | 12 | 1032.00 | 1356.00 | 73 | 3797.29 | donchian20 |
+| 2026-08-13 | ADANIENSOL-EQ | 11 | 1073.20 | 1607.00 | 87 | 5779.87 | donchian20 |
+| 2026-09-03 | HYUNDAI-EQ | 6 | 2212.10 | 2172.00 | 24 | -327.79 | donchian20 |
+| 2026-09-08 | PIDILITIND-EQ | 8 | 1701.50 | 1579.80 | 19 | -1060.72 | donchian20 |
+| 2026-09-15 | DLF-EQ | 16 | 677.25 | 644.50 | 51 | -603.36 | donchian20 |
+| 2026-09-16 | ABB-EQ | 1 | 7667.50 | 7005.00 | 43 | -732.02 | donchian20 |
+| 2026-09-16 | TVSMOTOR-EQ | 3 | 3850.70 | 4033.00 | 40 | 463.75 | donchian20 |
+| 2026-09-17 | TORNTPHARM-EQ | 3 | 4509.50 | 4810.00 | 90 | 811.81 | donchian20 |
+| 2026-09-22 | IDEA-EQ | 928 | 15.58 | 13.89 | 10 | -1657.12 | donchian20 |
+| 2026-11-05 | ZYDUSLIFE-EQ | 12 | 1066.15 | 1193.00 | 117 | 1433.81 | window_end |
+| 2026-11-05 | DIVISLAB-EQ | 1 | 7260.00 | 10140.50 | 79 | 2806.89 | window_end |
+| 2026-11-05 | PNB-EQ | 113 | 122.50 | 126.10 | 12 | 316.90 | window_end |
+| 2026-11-05 | TCS-EQ | 5 | 2520.00 | 2495.70 | 11 | -206.83 | window_end |
+| 2026-11-05 | DLF-EQ | 20 | 696.00 | 745.20 | 5 | 893.00 | window_end |
+| 2026-11-05 | WIPRO-EQ | 71 | 198.50 | 198.40 | 4 | -97.14 | window_end |
+| 2026-11-05 | GAIL-EQ | 78 | 181.10 | 185.99 | 2 | 290.70 | window_end |
+| 2026-11-05 | ADANIGREEN-EQ | 10 | 1408.00 | 1414.90 | 1 | -21.11 | window_end |
+
+### Verdict: FAILED
+
+CAGR 10.88% vs Nifty -3.11% (beats); Sharpe 0.74 <= 0.8; max DD -11.00% < 20%
+
+Structural diagnosis: the occupancy hypothesis is confirmed (TEST days with a position 50.7% → 99.7%, avg 6.89/8 slots; 29 → 53 trips; CAGR 1.09% → 10.88%; Sharpe 0.15 → 0.74; PF 1.11 → 1.75; top-5 still 55.9% of winning P&L). The gate still fails on Sharpe 0.74. Idle cash was not the remaining constraint; the 20-day stop plus CNC costs still chop the book. This is the last Donchian-family run. No parameters were changed after TEST.
+
