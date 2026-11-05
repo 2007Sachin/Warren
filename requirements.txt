@@ -9,3 +9,6 @@ pyyaml
 supabase
 yfinance
 jugaad-data
+vectorbt
+matplotlib
+numba
