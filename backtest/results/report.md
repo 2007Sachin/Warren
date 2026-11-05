@@ -460,3 +460,43 @@ CAGR 10.88% vs Nifty -3.11% (beats); Sharpe 0.74 <= 0.8; max DD -11.00% < 20%
 
 Structural diagnosis: the occupancy hypothesis is confirmed (TEST days with a position 50.7% → 99.7%, avg 6.89/8 slots; 29 → 53 trips; CAGR 1.09% → 10.88%; Sharpe 0.15 → 0.74; PF 1.11 → 1.75; top-5 still 55.9% of winning P&L). The gate still fails on Sharpe 0.74. Idle cash was not the remaining constraint; the 20-day stop plus CNC costs still chop the book. This is the last Donchian-family run. No parameters were changed after TEST.
 
+## Iteration 8 — TSMOM-PAPER
+
+Literature spec: Moskowitz-Ooi-Pedersen (2012) 12-month time-series momentum,
+long-only cash-market adaptation. Inverse 60-day vol, 15% cap, leftover cash.
+Monthly signal at month-end close; fill next open. CNC. 55 names.
+Ambiguity notes: total return not excess; 12-month leg only; sign>0 required.
+
+ann. vol 10.1%; mean monthly one-way turnover 23.6% (17 rebalances).
+
+### Metrics
+
+| strategy | window | CAGR | Sharpe | max DD | win rate | profit factor | trades | cost % of gross | end equity |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| tsmom-12m | TRAIN | 0.00% | 0.00 | 0.00% | 0.00% | 0.00 | 0 | 0.0% | 100000 |
+| nifty | tsmom-TRAIN | 9.11% | 0.69 | -10.95% | 100.00% | inf | 1 | 4.0% | 108769 |
+| tsmom-12m | VALIDATE | 9.49% | 0.86 | -5.54% | 56.92% | 1.86 | 65 | 18.6% | 104523 |
+| nifty | tsmom-VALIDATE | 15.53% | 1.05 | -8.72% | 100.00% | inf | 1 | 4.9% | 107110 |
+| tsmom-12m | TEST | -2.76% | -0.23 | -11.88% | 47.73% | 0.77 | 220 | 24.7% | 95802 |
+| nifty | tsmom-TEST | -3.11% | -0.18 | -15.59% | 0.00% | 0.00 | 1 | 8.8% | 95719 |
+
+TRAIN ann. vol 0.0%; mean monthly one-way turnover 0.0% (0 rebalances). (expected near-flat: 252-day lookback).
+VALIDATE ann. vol 11.4%; mean monthly one-way turnover 34.4% (5 rebalances).
+TEST ann. vol 10.1%; mean monthly one-way turnover 23.6% (17 rebalances).
+
+### TEST crisis months (Nifty worst 5, first-to-last close)
+
+| month | Nifty | TSMOM |
+|---|---:|---:|
+| 2026-03 | -10.19% | -7.86% |
+| 2026-09 | -5.97% | -2.27% |
+| 2026-01 | -3.16% | -1.13% |
+| 2025-07 | -3.03% | -2.41% |
+| 2026-08 | -2.80% | 0.76% |
+
+### Verdict: FAILED
+
+CAGR -2.76% vs Nifty -3.11% (beats); Sharpe -0.23 <= 0.8; max DD -11.88% < 20%
+
+Structural diagnosis: TRAIN is flat as expected (0 rebalances). Crisis check holds in direction: TSMOM lost less than Nifty in all five worst TEST months and was positive in 2026-08. TEST still fails Sharpe (−0.23) with 23.6% monthly one-way turnover and CNC cost 24.7% of gross. That is futures-paper vs cash-market long-only, not a missing 1-month or 3-month leg. No parameters were changed after TEST.
+
