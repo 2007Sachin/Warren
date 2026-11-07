@@ -92,6 +92,18 @@ def restore_broker() -> PaperBroker:
     for rec in existing.itertuples(index=False):
         sd = _as_date(getattr(rec, "signal_date", None))
         fd = _as_date(getattr(rec, "fill_date", None))
+        so = getattr(rec, "session_open", None)
+        if so is not None and (isinstance(so, float) and pd.isna(so)):
+            so = None
+        costs = getattr(rec, "costs_breakdown", None)
+        if isinstance(costs, str):
+            try:
+                import json
+                costs = json.loads(costs)
+            except Exception:
+                costs = {}
+        elif costs is None or (isinstance(costs, float) and pd.isna(costs)):
+            costs = {}
         order = PaperOrder(
             client_tag=str(rec.client_tag),
             symbol=str(rec.symbol),
@@ -102,6 +114,8 @@ def restore_broker() -> PaperBroker:
             signal_date=sd,
             fill_date=fd,
             fill_price=None if pd.isna(getattr(rec, "fill_price", None)) else float(rec.fill_price),
+            costs_breakdown=costs if isinstance(costs, dict) else {},
+            session_open=None if so is None else float(so),
         )
         broker.orders[order.client_tag] = order
     return broker
@@ -326,6 +340,8 @@ def main() -> None:
         today = date.today()
         out = run_range(today, today, replay=not args.live_fetch, dry_run=dry)
     print("JOB", out)
+    from runtime.report import write_weekly
+    print("WEEKLY", write_weekly())
 
 
 if __name__ == "__main__":

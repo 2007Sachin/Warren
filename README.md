@@ -30,6 +30,15 @@ Known SmartAPI vendor gaps, confirmed against a one-day refetch (not a pipeline 
 3. `python tests/smoke_login.py` — verifies auth + fetches your profile
 4. `python execution/instruments.py` — downloads & indexes the instrument master
 
+Laya advisor (optional, CPU-only torch in Cursor Cloud):
+
+```
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+pip install laya
+```
+
+Install the CPU torch wheel **before** `laya` so pip does not pull a multi-GB CUDA wheel. Then `python -m agents.fit_laya`. If the install fails, the runtime keeps `LAYA_MOCK` abstain and stays log-only.
+
 ## Hard rules (SEBI/Angel One, in force since 1 Apr 2026)
 - Orders only from the registered static IP (Mumbai VPS) — login/data work from anywhere
 - LIMIT orders only for algo flow; no market/IOC

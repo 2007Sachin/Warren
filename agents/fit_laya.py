@@ -1,7 +1,6 @@
 """Fit/evaluate the advisor gate on TRAIN/VALIDATE Donchian-v2 trades."""
 from __future__ import annotations
 
-import json
 from datetime import date
 from pathlib import Path
 
@@ -15,6 +14,18 @@ from backtest.loaders import NIFTY, daily_close
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "data" / "store" / "paper" / "laya_labels.csv"
 MAJORITY_MARGIN = 0.05
+REGIME_Q = {
+    "regime": {
+        "type": "choice",
+        "instructions": "Classify the Indian cash-equity regime from the features.",
+        "criteria": {
+            "trending": "Persistent directional move; 20-day return is large and breadth agrees.",
+            "ranging": "Choppy market; 20-day return is small.",
+            "volatile": "Two-way swings without a clean trend.",
+            "crisis": "Sharp drawdown or stress.",
+        },
+    }
+}
 
 
 def _regime_label(ret_20d: float | None) -> str:
@@ -43,23 +54,41 @@ def _rows(window: str, start: date, end: date) -> pd.DataFrame:
             "date": str(rec.date),
             "symbol": rec.symbol,
             "net_pnl": rec.net_pnl,
+            "ret_20d": r20,
             "regime": _regime_label(r20),
             "quality": 2 if rec.net_pnl > 0 else 0,
         })
     return pd.DataFrame(rows)
 
 
-def ece(probs: np.ndarray, y: np.ndarray, n_bins: int = 5) -> float:
-    if len(y) == 0:
+def ece(conf: np.ndarray, correct: np.ndarray, n_bins: int = 5) -> float:
+    if len(correct) == 0:
         return 0.0
     bins = np.linspace(0, 1, n_bins + 1)
     acc = 0.0
     for i in range(n_bins):
-        m = (probs >= bins[i]) & (probs < bins[i + 1] if i < n_bins - 1 else probs <= bins[i + 1])
+        hi = bins[i + 1]
+        m = (conf >= bins[i]) & ((conf < hi) if i < n_bins - 1 else (conf <= hi))
         if not m.any():
             continue
-        acc += abs(y[m].mean() - probs[m].mean()) * m.mean()
+        acc += abs(correct[m].mean() - conf[m].mean()) * m.mean()
     return float(acc)
+
+
+def _predict_regimes(agent, frame: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
+    preds, confs = [], []
+    for rec in frame.itertuples(index=False):
+        state = {"ret_20d": rec.ret_20d, "symbol": rec.symbol, "date": rec.date}
+        out = agent.predict(state, REGIME_Q)
+        ans = (out.get("answers") or {}).get("regime") or {}
+        preds.append(ans.get("choice") or "ranging")
+        confs.append(float(ans.get("answer_confidence") or ans.get("confidence") or 0.0))
+    return np.array(preds), np.array(confs)
+
+
+def _metrics(y: np.ndarray, pred: np.ndarray, conf: np.ndarray) -> dict:
+    acc = float((pred == y).mean()) if len(y) else 0.0
+    return {"acc": acc, "ece": ece(conf, (pred == y).astype(float))}
 
 
 def main() -> None:
@@ -77,25 +106,33 @@ def main() -> None:
 
     majority = valid["regime"].value_counts().idxmax()
     maj_acc = float((valid["regime"] == majority).mean())
-    # Mock / unavailable laya: predicted class is TRAIN majority (time-safe).
-    train_maj = train["regime"].value_counts().idxmax() if not train.empty else majority
-    pred = np.array([train_maj] * len(valid))
-    acc = float((pred == valid["regime"].to_numpy()).mean())
-    y_bin = (valid["regime"] == train_maj).to_numpy().astype(float)
-    probs = np.full(len(valid), y_bin.mean() if len(valid) else 0.5)
     print(f"VALIDATE regime majority={majority} majority_acc={maj_acc:.3f}")
-    print(f"VALIDATE regime model_acc={acc:.3f} ECE={ece(probs, y_bin):.3f}")
-    q_acc = float((valid["quality"] == 0).mean())  # naive all-lose baseline
-    print(f"VALIDATE quality naive_loss_rate={q_acc:.3f}")
+
+    try:
+        from laya import Agent
+        agent = Agent(device="cpu", compile=False)
+        tr_pred, tr_conf = _predict_regimes(agent, train) if not train.empty else (np.array([]), np.array([]))
+        va_pred, va_conf = _predict_regimes(agent, valid)
+        tr = _metrics(train["regime"].to_numpy(), tr_pred, tr_conf) if len(tr_pred) else {"acc": 0.0, "ece": 0.0}
+        va = _metrics(valid["regime"].to_numpy(), va_pred, va_conf)
+        print(f"TRAIN  regime model_acc={tr['acc']:.3f} ECE={tr['ece']:.3f} (real laya Agent)")
+        print(f"VALIDATE regime model_acc={va['acc']:.3f} ECE={va['ece']:.3f} (real laya Agent)")
+        acc = va["acc"]
+        have = True
+    except Exception as exc:
+        have = False
+        train_maj = train["regime"].value_counts().idxmax() if not train.empty else majority
+        pred = np.array([train_maj] * len(valid))
+        acc = float((pred == valid["regime"].to_numpy()).mean())
+        print(f"VALIDATE regime model_acc={acc:.3f} ECE=n/a")
+        print(f"laya Agent failed: {type(exc).__name__}: {exc}")
+        save_mode("log-only", f"laya Agent failed: {exc}")
+        print("advisor mode=log-only (install/runtime error)")
+        return
 
     beat = acc >= maj_acc + MAJORITY_MARGIN
-    try:
-        import laya  # noqa: F401
-        have = True
-    except Exception:
-        have = False
     if not have:
-        save_mode("log-only", "laya unavailable; mock abstain")
+        save_mode("log-only", "laya unavailable")
         print("advisor mode=log-only (laya not installed; mock)")
         return
     if not beat:

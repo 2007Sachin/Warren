@@ -47,22 +47,40 @@ def _abstain(vote_type: str, payload: dict) -> dict:
     return vote
 
 
+def _agent():
+    from laya import Agent
+    return Agent(device="cpu", compile=False)
+
+
 def regime_vote(state: dict) -> dict:
     if not _laya_available():
         return _abstain("regime", {"state": state})
     try:
-        from laya import choice
-        out = choice(
-            ["trending", "ranging", "volatile", "crisis"],
-            context=json.dumps(state),
+        agent = _agent()
+        out = agent.predict(
+            state,
+            {
+                "regime": {
+                    "type": "choice",
+                    "instructions": "Classify the Indian cash-equity regime.",
+                    "criteria": {
+                        "trending": "Persistent directional move.",
+                        "ranging": "Choppy, small 20-day return.",
+                        "volatile": "Two-way swings.",
+                        "crisis": "Sharp drawdown.",
+                    },
+                }
+            },
         )
-        if not out or out.get("route") == "review" or out.get("unbound"):
+        ans = (out.get("answers") or {}).get("regime") or {}
+        choice = ans.get("choice")
+        if not choice:
             return _abstain("regime", {"state": state, "raw": out})
         vote = {
             "ts": datetime.now(timezone.utc).isoformat(),
             "advisor": ADVISOR,
             "vote_type": "regime",
-            "payload": {"choice": out.get("value"), "vote": out.get("value")},
+            "payload": {"choice": choice, "vote": choice, "confidence": ans.get("confidence")},
             "acted_on": load_mode() == "active",
         }
         append_vote({**vote, "payload": json.dumps(vote["payload"])})
@@ -75,17 +93,36 @@ def triage_vote(features: dict) -> dict:
     if not _laya_available():
         return _abstain("triage", {"features": features})
     try:
-        from laya import structured
-        out = structured({"quality": "int", "anomalous": "bool"}, context=json.dumps(features))
-        if not out or out.get("route") == "review" or out.get("unbound"):
+        agent = _agent()
+        out = agent.predict(
+            features,
+            {
+                "quality": {
+                    "type": "score",
+                    "instructions": "Breakout quality 0 weak, 1 mixed, 2 strong.",
+                    "criteria": ["weak or trap", "mixed", "clean continuation"],
+                },
+                "anomalous": {
+                    "type": "noul",
+                    "instructions": "Is this breakout anomalous vs ATR/volume/52w high?",
+                    "criteria": {"false": "ordinary", "true": "anomalous"},
+                },
+            },
+        )
+        ans = out.get("answers") or {}
+        q = ans.get("quality") or {}
+        a = ans.get("anomalous") or {}
+        raw_q = q.get("score", q.get("choice", 2))
+        try:
+            quality = max(0, min(2, int(round(float(raw_q)))))
+        except Exception:
             return _abstain("triage", {"features": features, "raw": out})
-        quality = int(out.get("quality", 2))
-        quality = max(0, min(2, quality))
+        anomalous = bool((a.get("noul") or 0) > 0.5) if isinstance(a.get("noul"), (int, float)) else bool(a.get("choice"))
         vote = {
             "ts": datetime.now(timezone.utc).isoformat(),
             "advisor": ADVISOR,
             "vote_type": "triage",
-            "payload": {"quality": quality, "anomalous": out.get("anomalous"), "vote": quality},
+            "payload": {"quality": quality, "anomalous": anomalous, "vote": quality},
             "acted_on": load_mode() == "active",
         }
         append_vote({**vote, "payload": json.dumps(vote["payload"])})

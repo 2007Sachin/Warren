@@ -23,6 +23,7 @@ class PaperOrder:
     fill_price: float | None = None
     costs_breakdown: dict = field(default_factory=dict)
     stop_price: float | None = None
+    session_open: float | None = None
 
     def as_dict(self) -> dict:
         d = asdict(self)
@@ -87,8 +88,12 @@ class PaperBroker:
             px = opens.get(order.symbol)
             if px is None or px <= 0:
                 order.status = "EXPIRED"
+                order.fill_date = session
+                order.session_open = None
+                order.costs_breakdown = {"expired_open": None, "gap_pct": None}
                 resolved.append(order)
                 continue
+            order.session_open = float(px)
             buy_ok = order.side == "BUY" and px <= order.limit_price
             sell_ok = order.side == "SELL" and px >= order.limit_price
             if buy_ok or sell_ok:
@@ -98,5 +103,8 @@ class PaperBroker:
                 order.costs_breakdown = order_cost(order.side, "CNC", order.qty, px)
             else:
                 order.status = "EXPIRED"
+                order.fill_date = session
+                gap = (px / order.limit_price - 1.0) if order.limit_price else None
+                order.costs_breakdown = {"expired_open": float(px), "gap_pct": gap}
             resolved.append(order)
         return resolved
