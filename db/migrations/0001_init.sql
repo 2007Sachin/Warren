@@ -1,4 +1,9 @@
--- Phase 0 operational schema. Run in Supabase SQL editor or via supabase CLI.
+-- Phase 0 operational schema. Idempotent. Apply on the direct (unpooled) URL.
+
+create table if not exists schema_migrations (
+  name text primary key,
+  applied_at timestamptz not null default now()
+);
 
 create table if not exists orders_intent (
   id            uuid primary key default gen_random_uuid(),
@@ -56,4 +61,14 @@ create table if not exists audit_log (
   action        text not null,
   payload       jsonb
 );
-revoke delete, update on audit_log from authenticated, anon;
+
+do $$
+begin
+  if exists (select 1 from pg_roles where rolname = 'authenticated') then
+    execute 'revoke delete, update on audit_log from authenticated';
+  end if;
+  if exists (select 1 from pg_roles where rolname = 'anon') then
+    execute 'revoke delete, update on audit_log from anon';
+  end if;
+end $$;
+revoke delete, update on audit_log from public;

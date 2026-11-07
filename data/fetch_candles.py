@@ -66,10 +66,18 @@ def fetch(symbol_token: str, exchange: str, interval: str, from_dt: str, to_dt: 
         "fromdate": from_dt,   # "2026-10-01 09:15"
         "todate": to_dt,       # "2026-11-05 15:30"
     })
-    if not resp.get("status"):
-        raise RuntimeError(f"getCandleData failed: {resp}")
     cols = ["timestamp", "open", "high", "low", "close", "volume"]
-    df = pd.DataFrame(resp["data"], columns=cols)
+    if not resp.get("status"):
+        message = str(resp.get("message", resp))
+        if "no data" in message.lower():
+            time.sleep(pause)
+            return pd.DataFrame(columns=cols)
+        raise RuntimeError(f"getCandleData failed: {resp}")
+    rows = resp.get("data") or []
+    if not rows:
+        time.sleep(pause)
+        return pd.DataFrame(columns=cols)
+    df = pd.DataFrame(rows, columns=cols)
     df["timestamp"] = normalize_timestamps(df["timestamp"])
     time.sleep(pause)
     return df

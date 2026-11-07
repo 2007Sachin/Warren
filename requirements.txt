@@ -8,6 +8,16 @@ duckdb
 requests
 python-dotenv
 pyyaml
-supabase
+psycopg[binary]==3.2.10
 yfinance
 jugaad-data
+vectorbt
+matplotlib
+numba
+pytest
+tabulate
+# Install CPU torch first in Cursor Cloud:
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+# then: pip install laya
+# Pin the API we used; the CUDA wheel is not required.
+laya==0.4.27
