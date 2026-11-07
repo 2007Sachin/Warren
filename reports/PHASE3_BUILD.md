@@ -6,7 +6,7 @@ Branch: `cursor/phase3-paper-runtime-f952` (platform branch template; requested 
 
 - `paper/broker.py` — LIMIT-only PaperBroker. Fill at next session open if buy `open<=limit` / sell `open>=limit`, else EXPIRED. Costs from `backtest/costs.py`.
 - `paper/ledger.py` — parquet mirror (`PAPER_STORE`) plus optional Supabase upsert. `client_tag` / `date` unique → restart-safe.
-- `supabase/migrations/0002_paper.sql` — `paper_orders`, `paper_positions`, `paper_daily_pnl`, append-only `advisor_votes`.
+- `db/migrations/0002_paper.sql` — `paper_orders`, `paper_positions`, `paper_daily_pnl`, append-only `advisor_votes`.
 - `runtime/daily_job.py` — `--replay START:END` walks Donchian-v2 signals (factored helpers in `backtest/donchian_v2.py`), sizes at 0.75% equity / 2×ATR(14), max 6 names, 4% heat, 2% daily paper-loss kill switch, Telegram dry-run to stdout.
 - `runtime/telegram_bot.py` — `STOP` trips `risk.kill_switch.trip`; `STATUS`; dry-run never sends.
 - `agents/laya_advisor.py` — regime + triage; abstain if laya missing; size multiplier never > 1.
@@ -59,7 +59,7 @@ advisor mode=log-only (laya not installed; mock)
 - Paper LIMIT pad is 1% around the signal close so next-open fills can miss on larger gaps (EXPIRED). Backtest v2 entered at next open unconditionally — a documented fill-model difference, not a Donchian rule change.
 - Paper sizing (0.75% / ATR / max 6 / heat 4%) is the Phase 3 overlay; backtest v2 remains 12.5% × 8.
 - Daily candle refresh in non-replay mode calls `data.pipeline.run` (data path only). Paper modules do not import the order gateway.
-- Supabase is optional; this VM had no `SUPABASE_URL`. Parquet is the source of truth for tests.
+- Neon is optional; without `DATABASE_URL` the ledger stays Parquet-only. Parquet is the source of truth for tests.
 - Weekly report yfinance `^NSEI` may fail offline; falls back to stored Nifty 50.
 - Train-time 252-day / 200-day lookbacks still apply: early 2024 has few Donchian-v2 signals.
 

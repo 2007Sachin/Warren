@@ -6,7 +6,7 @@ duckdb
 requests
 python-dotenv
 pyyaml
-supabase
+psycopg[binary]==3.2.10
 yfinance
 jugaad-data
 vectorbt

@@ -9,7 +9,7 @@ Layered algorithmic trading system for Indian markets (NSE/BSE) on Angel One Sma
 - **execution/** — Angel One auth, instrument master, order placement (LIMIT only — market/IOC prohibited for algos)
 - **risk/** — position limits, daily loss cap, kill switch
 - **ops/** — Telegram alerts, token refresh, health checks
-- **supabase/** — operational database schema (orders, positions, P&L, audit)
+- **db/** — Neon Lakebase Postgres schema and client (orders, positions, P&L, audit). Parquet under `data/store/paper/` is the local source of truth; the DB is optional.
 - **vps/** — deployment scripts + cron for the Mumbai VPS (live trading)
 
 ## Data
@@ -38,6 +38,14 @@ pip install laya
 ```
 
 Install the CPU torch wheel **before** `laya` so pip does not pull a multi-GB CUDA wheel. Then `python -m agents.fit_laya`. If the install fails, the runtime keeps `LAYA_MOCK` abstain and stays log-only.
+
+Ops DB is Neon Postgres. Set `DATABASE_URL` (pooled) for app reads/writes and `DATABASE_URL_UNPOOLED` for migrations:
+
+```
+python -m db.migrate
+```
+
+If `DATABASE_URL` is unset or unreachable, paper trading continues on Parquet only.
 
 ## Hard rules (SEBI/Angel One, in force since 1 Apr 2026)
 - Orders only from the registered static IP (Mumbai VPS) — login/data work from anywhere

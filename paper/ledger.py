@@ -1,9 +1,8 @@
-"""Paper ledger: parquet always, Supabase when credentials exist."""
+"""Paper ledger: parquet always; Neon when DATABASE_URL is reachable."""
 from __future__ import annotations
 
 import json
 import os
-from datetime import date
 from pathlib import Path
 
 import pandas as pd
@@ -28,45 +27,6 @@ def _write(name: str, df: pd.DataFrame) -> None:
     df.to_parquet(_path(name), index=False)
 
 
-def _supabase():
-    url = os.environ.get("SUPABASE_URL")
-    key = os.environ.get("SUPABASE_KEY")
-    if not url or not key:
-        return None
-    try:
-        from supabase import create_client
-        return create_client(url, key)
-    except Exception:
-        return None
-
-
-def upsert_order(row: dict) -> bool:
-    """Insert by client_tag. Returns True if a new row was written."""
-    orders = _read("paper_orders")
-    tag = row["client_tag"]
-    if not orders.empty and tag in set(orders["client_tag"].astype(str)):
-        # update status/fill in place for the same tag
-        mask = orders["client_tag"].astype(str) == tag
-        for k, v in row.items():
-            if k == "costs_breakdown" and isinstance(v, dict):
-                orders.loc[mask, k] = json.dumps(v)
-            else:
-                orders.loc[mask, k] = v
-        _write("paper_orders", orders)
-        return False
-    add = pd.DataFrame([_serialize(row)])
-    out = pd.concat([orders, add], ignore_index=True) if not orders.empty else add
-    _write("paper_orders", out)
-    sb = _supabase()
-    if sb is not None:
-        payload = {**row, "costs_breakdown": row.get("costs_breakdown")}
-        try:
-            sb.table("paper_orders").upsert(payload, on_conflict="client_tag").execute()
-        except Exception:
-            pass
-    return True
-
-
 def _serialize(row: dict) -> dict:
     out = dict(row)
     if isinstance(out.get("costs_breakdown"), dict):
@@ -77,6 +37,29 @@ def _serialize(row: dict) -> dict:
     return out
 
 
+def upsert_order(row: dict) -> bool:
+    """Insert by client_tag. Returns True if a new row was written."""
+    orders = _read("paper_orders")
+    tag = row["client_tag"]
+    if not orders.empty and tag in set(orders["client_tag"].astype(str)):
+        mask = orders["client_tag"].astype(str) == tag
+        for k, v in row.items():
+            if k == "costs_breakdown" and isinstance(v, dict):
+                orders.loc[mask, k] = json.dumps(v)
+            else:
+                orders.loc[mask, k] = v
+        _write("paper_orders", orders)
+        from db import upsert_paper_order
+        upsert_paper_order(row)
+        return False
+    add = pd.DataFrame([_serialize(row)])
+    out = pd.concat([orders, add], ignore_index=True) if not orders.empty else add
+    _write("paper_orders", out)
+    from db import upsert_paper_order
+    upsert_paper_order(row)
+    return True
+
+
 def set_position(row: dict) -> None:
     pos = _read("paper_positions")
     if pos.empty:
@@ -85,15 +68,8 @@ def set_position(row: dict) -> None:
     if int(row.get("qty") or 0) > 0:
         pos = pd.concat([pos, pd.DataFrame([_serialize(row)])], ignore_index=True)
     _write("paper_positions", pos)
-    sb = _supabase()
-    if sb is not None:
-        try:
-            if int(row.get("qty") or 0) <= 0:
-                sb.table("paper_positions").delete().eq("symbol", row["symbol"]).execute()
-            else:
-                sb.table("paper_positions").upsert(row, on_conflict="symbol").execute()
-        except Exception:
-            pass
+    from db import upsert_paper_position
+    upsert_paper_position(row)
 
 
 def upsert_daily_pnl(row: dict) -> bool:
@@ -105,12 +81,8 @@ def upsert_daily_pnl(row: dict) -> bool:
     add = pd.DataFrame([payload])
     out = pd.concat([pnl, add], ignore_index=True) if not pnl.empty else add
     _write("paper_daily_pnl", out)
-    sb = _supabase()
-    if sb is not None:
-        try:
-            sb.table("paper_daily_pnl").upsert(payload, on_conflict="date").execute()
-        except Exception:
-            pass
+    from db import upsert_paper_daily_pnl
+    upsert_paper_daily_pnl(row)
     return True
 
 
@@ -119,12 +91,8 @@ def append_vote(row: dict) -> None:
     add = pd.DataFrame([_serialize(row)])
     out = pd.concat([votes, add], ignore_index=True) if not votes.empty else add
     _write("advisor_votes", out)
-    sb = _supabase()
-    if sb is not None:
-        try:
-            sb.table("advisor_votes").insert(row).execute()
-        except Exception:
-            pass
+    from db import insert_advisor_vote
+    insert_advisor_vote(row)
 
 
 def positions() -> pd.DataFrame:
