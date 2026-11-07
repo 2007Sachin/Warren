@@ -12,3 +12,5 @@ jugaad-data
 vectorbt
 matplotlib
 numba
+pytest
+tabulate

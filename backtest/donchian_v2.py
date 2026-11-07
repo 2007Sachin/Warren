@@ -34,6 +34,70 @@ from backtest.loaders import NIFTY, daily_close
 from backtest.metrics import summarize
 
 
+def donchian_high(px: pd.DataFrame, day) -> float | None:
+    if day not in px.index:
+        return None
+    i = px.index.get_loc(day)
+    if i < DONCHIAN_IN:
+        return None
+    window = px["high"].iloc[i - DONCHIAN_IN : i]
+    if len(window) < DONCHIAN_IN or window.isna().any():
+        return None
+    return float(window.max())
+
+
+def donchian_low(px: pd.DataFrame, day) -> float | None:
+    if day not in px.index:
+        return None
+    i = px.index.get_loc(day)
+    if i < DONCHIAN_OUT:
+        return None
+    window = px["low"].iloc[i - DONCHIAN_OUT : i]
+    if len(window) < DONCHIAN_OUT or window.isna().any():
+        return None
+    return float(window.min())
+
+
+def in_regime(px: pd.DataFrame, sma: pd.Series, day) -> bool:
+    if day not in px.index:
+        return False
+    if day not in sma.index or pd.isna(sma.loc[day]):
+        return False
+    return float(px.loc[day, "close"]) > float(sma.loc[day])
+
+
+def ret55(px: pd.DataFrame, day) -> float:
+    i = px.index.get_loc(day)
+    if i < DONCHIAN_IN:
+        return float("-inf")
+    a = float(px["close"].iloc[i - DONCHIAN_IN])
+    b = float(px["close"].iloc[i])
+    if a <= 0:
+        return float("-inf")
+    return b / a - 1.0
+
+
+def ranked_breakouts(names, bars, sma, day, held, pending_sell, last_exit_i, i) -> list[tuple[str, float]]:
+    """Donchian-55 close breakouts, ranked by 55-day return. Verbatim v2 rule."""
+    cands = []
+    for sym in names:
+        if sym in held or sym in pending_sell:
+            continue
+        last_x = last_exit_i.get(sym)
+        if last_x is not None and i - last_x < COOLDOWN + 1:
+            continue
+        px = bars[sym]
+        if not in_regime(px, sma[sym], day):
+            continue
+        hh = donchian_high(px, day)
+        if hh is None or day not in px.index:
+            continue
+        if float(px.loc[day, "close"]) > hh:
+            cands.append((sym, ret55(px, day)))
+    cands.sort(key=lambda x: x[1], reverse=True)
+    return cands
+
+
 def simulate(start: date, end: date, capital: float = CAPITAL) -> dict:
     names = pooled_equities()
     bars = _ohlc(names)
@@ -51,6 +115,7 @@ def simulate(start: date, end: date, capital: float = CAPITAL) -> dict:
             "cash_frac": 1.0, "occupancy": 0.0, "avg_slots": 0.0,
             "regime_off_frac": 0.0, "regime_off_median": 0.0, "top5_share": 0.0,
             "n_symbols": len(names), "n_days": 0,
+            "signals": pd.DataFrame(),
         }
 
     loc = {d: i for i, d in enumerate(calendar)}
@@ -62,6 +127,7 @@ def simulate(start: date, end: date, capital: float = CAPITAL) -> dict:
     off_streak = {sym: 0 for sym in names}
     off_days = {sym: 0 for sym in names}
     trades = []
+    signal_rows = []
     equity_pts = []
     cash_days = 0
     slot_sum = 0
@@ -75,15 +141,6 @@ def simulate(start: date, end: date, capital: float = CAPITAL) -> dict:
             else:
                 value += rec["qty"] * rec["last"]
         return value
-
-    def in_regime(sym: str, day) -> bool:
-        px = bars[sym]
-        if day not in px.index:
-            return False
-        s = sma[sym]
-        if day not in s.index or pd.isna(s.loc[day]):
-            return False
-        return float(px.loc[day, "close"]) > float(s.loc[day])
 
     def sell(sym: str, day, price: float, reason: str):
         nonlocal cash
@@ -140,41 +197,6 @@ def simulate(start: date, end: date, capital: float = CAPITAL) -> dict:
             "reason": "donchian55",
         })
 
-    def donchian_high(sym: str, day) -> float | None:
-        px = bars[sym]
-        if day not in px.index:
-            return None
-        i = px.index.get_loc(day)
-        if i < DONCHIAN_IN:
-            return None
-        window = px["high"].iloc[i - DONCHIAN_IN : i]
-        if len(window) < DONCHIAN_IN or window.isna().any():
-            return None
-        return float(window.max())
-
-    def donchian_low(sym: str, day) -> float | None:
-        px = bars[sym]
-        if day not in px.index:
-            return None
-        i = px.index.get_loc(day)
-        if i < DONCHIAN_OUT:
-            return None
-        window = px["low"].iloc[i - DONCHIAN_OUT : i]
-        if len(window) < DONCHIAN_OUT or window.isna().any():
-            return None
-        return float(window.min())
-
-    def ret55(sym: str, day) -> float:
-        px = bars[sym]
-        i = px.index.get_loc(day)
-        if i < DONCHIAN_IN:
-            return float("-inf")
-        a = float(px["close"].iloc[i - DONCHIAN_IN])
-        b = float(px["close"].iloc[i])
-        if a <= 0:
-            return float("-inf")
-        return b / a - 1.0
-
     for day in calendar:
         i = loc[day]
         for sym, reason in list(pending_sell.items()):
@@ -214,7 +236,7 @@ def simulate(start: date, end: date, capital: float = CAPITAL) -> dict:
             px = bars[sym]
             if day not in px.index:
                 continue
-            on = in_regime(sym, day)
+            on = in_regime(bars[sym], sma[sym], day)
             if not on:
                 off_streak[sym] += 1
                 off_days[sym] += 1
@@ -222,30 +244,21 @@ def simulate(start: date, end: date, capital: float = CAPITAL) -> dict:
                 off_streak[sym] = 0
 
         for sym in list(pos):
-            ll = donchian_low(sym, day)
             px = bars[sym]
+            ll = donchian_low(px, day)
             if ll is not None and day in px.index and float(px.loc[day, "close"]) < ll:
                 pending_sell[sym] = "donchian20"
             elif off_streak[sym] >= REGIME_OFF_DAYS:
                 pending_sell.setdefault(sym, "regime_off")
 
-        cands = []
-        for sym in names:
-            if sym in pos or sym in pending_sell:
-                continue
-            last_x = last_exit_i.get(sym)
-            if last_x is not None and i - last_x < COOLDOWN + 1:
-                continue
-            if not in_regime(sym, day):
-                continue
-            hh = donchian_high(sym, day)
-            px = bars[sym]
-            if hh is None or day not in px.index:
-                continue
-            if float(px.loc[day, "close"]) > hh:
-                cands.append((sym, ret55(sym, day)))
-        cands.sort(key=lambda x: x[1], reverse=True)
-        pending_buy = cands
+        pending_buy = ranked_breakouts(names, bars, sma, day, pos, pending_sell, last_exit_i, i)
+        for rnk, (sym, score) in enumerate(pending_buy):
+            signal_rows.append({
+                "signal_date": day.date() if hasattr(day, "date") else day,
+                "symbol": sym,
+                "rank": rnk,
+                "ret55": score,
+            })
 
     if pos and calendar:
         last = calendar[-1]
@@ -283,4 +296,5 @@ def simulate(start: date, end: date, capital: float = CAPITAL) -> dict:
         "top5_share": top5_share,
         "n_symbols": len(names),
         "n_days": n_days,
+        "signals": pd.DataFrame(signal_rows),
     }
